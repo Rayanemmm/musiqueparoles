@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LyricForge — Créateur de Musique & Paroles</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1208;
+    --paper: #f5efe0;
+    --gold: #c9a84c;
+    --gold-light: #e8c96a;
+    --rust: #b5451b;
+    --cream: #faf6ee;
+    --shadow: rgba(26,18,8,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background-color: var(--paper);
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(201,168,76,0.12) 28px),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    font-family: 'Courier Prime', monospace;
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 2rem 1rem 4rem;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 3rem;
+    position: relative;
+  }
+
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    font-weight: 900;
+    letter-spacing: -2px;
+    line-height: 1;
+    color: var(--ink);
+    position: relative;
+    display: inline-block;
+  }
+  .logo span { color: var(--gold); }
+
+  .subtitle {
+    font-family: 'Courier Prime', monospace;
+    font-size: 0.85rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-top: 0.5rem;
+  }
+
+  .divider {
+    width: 80px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin: 1rem auto;
+  }
+
+  .app {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    border-bottom: 2px solid var(--gold);
+    margin-bottom: 2rem;
+    gap: 0.25rem;
+  }
+  .tab-btn {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-style: italic;
+    padding: 0.6rem 1.8rem;
+    background: transparent;
+    border: 2px solid transparent;
+    border-bottom: none;
+    cursor: pointer;
+    color: #8a7a5a;
+    transition: all 0.2s;
+    position: relative;
+    top: 2px;
+    border-radius: 4px 4px 0 0;
+  }
+  .tab-btn:hover { color: var(--ink); background: rgba(201,168,76,0.1); }
+  .tab-btn.active {
+    background: var(--paper);
+    border-color: var(--gold);
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  /* FORM CARD */
+  .card {
+    background: var(--cream);
+    border: 1px solid rgba(201,168,76,0.4);
+    border-radius: 2px;
+    padding: 2rem;
+    box-shadow: 4px 4px 0 rgba(201,168,76,0.2), 8px 8px 0 rgba(201,168,76,0.08);
+    margin-bottom: 2rem;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+  }
+  @media(max-width:600px){ .form-grid { grid-template-columns: 1fr; } }
+
+  .field { display: flex; flex-direction: column; gap: 0.4rem; }
+  .field.full { grid-column: 1/-1; }
+
+  label {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--rust);
+    font-weight: 700;
+  }
+
+  select, input, textarea {
+    font-family: 'Courier Prime', monospace;
+    font-size: 1rem;
+    background: white;
+    border: 1.5px solid rgba(201,168,76,0.5);
+    border-radius: 2px;
+    padding: 0.55rem 0.8rem;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+  select:focus, input:focus, textarea:focus { border-color: var(--gold); }
+  textarea { resize: vertical; min-height: 80px; }
+
+  .generate-btn {
+    display: block;
+    width: 100%;
+    margin-top: 1.5rem;
+    padding: 1rem;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    font-style: italic;
+    font-weight: 700;
+    background: var(--ink);
+    color: var(--gold-light);
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 3px 3px 0 var(--gold);
+  }
+  .generate-btn:hover:not(:disabled) { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--gold); }
+  .generate-btn:active:not(:disabled) { transform: translate(2px,2px); box-shadow: 1px 1px 0 var(--gold); }
+  .generate-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  /* LOADING */
+  .loading {
+    display: none;
+    text-align: center;
+    padding: 3rem;
+  }
+  .loading.active { display: block; }
+  .loading-notes {
+    font-size: 2rem;
+    animation: bounce-notes 1s infinite;
+    display: inline-block;
+  }
+  @keyframes bounce-notes {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  .loading p {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    margin-top: 1rem;
+    color: var(--rust);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* RESULT */
+  .result {
+    display: none;
+    background: white;
+    border: 1.5px solid rgba(201,168,76,0.4);
+    border-radius: 2px;
+    padding: 2rem 2.5rem;
+    box-shadow: 4px 4px 0 rgba(201,168,76,0.2);
+    position: relative;
+    animation: fadeInUp 0.5s ease;
+  }
+  @keyframes fadeInUp {
+    from { opacity:0; transform:translateY(16px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  .result.active { display: block; }
+
+  .result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .result-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .result-badge {
+    font-size: 0.68rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    background: var(--ink);
+    color: var(--gold-light);
+    padding: 0.3rem 0.7rem;
+    border-radius: 2px;
+  }
+
+  .result-content {
+    font-family: 'Courier Prime', monospace;
+    font-size: 0.95rem;
+    line-height: 2;
+    white-space: pre-wrap;
+    color: var(--ink);
+    border-left: 3px solid var(--gold);
+    padding-left: 1.5rem;
+  }
+
+  .actions {
+    display: flex;
+    gap: 0.8rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .action-btn {
+    font-family: 'Courier Prime', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.5rem 1rem;
+    border: 1.5px solid var(--ink);
+    background: transparent;
+    cursor: pointer;
+    color: var(--ink);
+    border-radius: 2px;
+    transition: all 0.15s;
+  }
+  .action-btn:hover { background: var(--ink); color: var(--gold-light); }
+  .action-btn.primary { background: var(--ink); color: var(--gold-light); border-color: var(--ink); }
+  .action-btn.primary:hover { background: #2d200a; }
+
+  /* HISTORY */
+  .history-empty {
+    text-align: center;
+    padding: 3rem;
+    color: #8a7a5a;
+    font-style: italic;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+  }
+
+  .history-list { display: flex; flex-direction: column; gap: 1rem; }
+  .history-item {
+    background: white;
+    border: 1.5px solid rgba(201,168,76,0.35);
+    border-radius: 2px;
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .history-item:hover { border-color: var(--gold); transform: translateX(4px); }
+  .history-item-title { font-family: 'Playfair Display', serif; font-weight: 700; }
+  .history-item-meta { font-size: 0.75rem; color: #8a7a5a; margin-top: 0.25rem; }
+  .history-item-preview { font-size: 0.85rem; color: #5a4a2a; margin-top: 0.4rem; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .error-msg {
+    background: #fff3f0;
+    border: 1.5px solid var(--rust);
+    border-radius: 2px;
+    padding: 1rem 1.5rem;
+    color: var(--rust);
+    font-style: italic;
+    margin-top: 1rem;
+    display: none;
+  }
+  .error-msg.active { display: block; }
+
+  /* section labels */
+  .section-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 900;
+    font-style: italic;
+    margin-bottom: 1.5rem;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .section-label::after { content:''; flex:1; height:1px; background:linear-gradient(90deg,var(--gold),transparent); }
+
+  /* corner ornaments */
+  .card::before {
+    content: '♪';
+    position: absolute;
+    top: 0.5rem; right: 0.8rem;
+    font-size: 1.2rem;
+    color: rgba(201,168,76,0.3);
+    pointer-events: none;
+  }
+  .card { position: relative; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Lyric<span>Forge</span></div>
+  <div class="subtitle">✦ Créateur de paroles & musiques ✦</div>
+  <div class="divider"></div>
+</header>
+
+<div class="app">
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('lyrics')">🎵 Paroles</button>
+    <button class="tab-btn" onclick="switchTab('music')">🎶 Description Musicale</button>
+    <button class="tab-btn" onclick="switchTab('history')">📜 Historique</button>
+  </div>
+
+  <!-- ONGLET PAROLES -->
+  <div id="tab-lyrics">
+    <div class="section-label">Composer des paroles</div>
+    <div class="card">
+      <div class="form-grid">
+        <div class="field">
+          <label>Genre musical</label>
+          <select id="genre-lyrics">
+            <option value="pop">Pop</option>
+            <option value="rock">Rock</option>
+            <option value="rap / hip-hop">Rap / Hip-Hop</option>
+            <option value="R&B / soul">R&B / Soul</option>
+            <option value="jazz">Jazz</option>
+            <option value="country">Country</option>
+            <option value="électro / dance">Électro / Dance</option>
+            <option value="folk acoustique">Folk acoustique</option>
+            <option value="métal">Métal</option>
+            <option value="reggae">Reggae</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Langue</label>
+          <select id="lang-lyrics">
+            <option value="français">Français</option>
+            <option value="anglais">Anglais</option>
+            <option value="espagnol">Espagnol</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Thème / Émotion</label>
+          <input type="text" id="theme-lyrics" placeholder="amour, nostalgie, fête, liberté…">
+        </div>
+        <div class="field">
+          <label>Ambiance</label>
+          <select id="mood-lyrics">
+            <option value="mélancolique">Mélancolique</option>
+            <option value="euphorique">Euphorique</option>
+            <option value="romantique">Romantique</option>
+            <option value="sombre">Sombre</option>
+            <option value="motivant">Motivant</option>
+            <option value="nostalgique">Nostalgique</option>
+            <option value="festif">Festif</option>
+          </select>
+        </div>
+        <div class="field full">
+          <label>Contexte ou histoire (optionnel)</label>
+          <textarea id="context-lyrics" placeholder="Décris une situation, un personnage, une scène…"></textarea>
+        </div>
+        <div class="field">
+          <label>Structure</label>
+          <select id="structure-lyrics">
+            <option value="couplet – refrain – couplet – refrain – pont – refrain">Standard (couplet–refrain–pont)</option>
+            <option value="couplet – refrain × 3">Court (couplet–refrain × 3)</option>
+            <option value="intro – couplet – refrain – couplet – refrain – outro">Complète avec intro/outro</option>
+            <option value="deux couplets et un long refrain">Deux couplets + grand refrain</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Artiste de référence (optionnel)</label>
+          <input type="text" id="artist-lyrics" placeholder="ex: Stromae, Adele, Eminem…">
+        </div>
+      </div>
+      <button class="generate-btn" onclick="generateLyrics()">✦ Créer les paroles ✦</button>
+    </div>
+
+    <div class="loading" id="loading-lyrics">
+      <div class="loading-notes">🎵</div>
+      <p>Composition en cours…</p>
+    </div>
+    <div class="error-msg" id="error-lyrics"></div>
+    <div class="result" id="result-lyrics">
+      <div class="result-header">
+        <div class="result-title" id="result-lyrics-title">Paroles</div>
+        <div class="result-badge" id="result-lyrics-badge">Paroles</div>
+      </div>
+      <div class="result-content" id="result-lyrics-content"></div>
+      <div class="actions">
+        <button class="action-btn primary" onclick="copyResult('result-lyrics-content')">Copier</button>
+        <button class="action-btn" onclick="regenerateLyrics()">Régénérer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ONGLET MUSIQUE -->
+  <div id="tab-music" style="display:none">
+    <div class="section-label">Décrire une composition</div>
+    <div class="card">
+      <div class="form-grid">
+        <div class="field">
+          <label>Genre principal</label>
+          <select id="genre-music">
+            <option value="pop électronique">Pop Électronique</option>
+            <option value="jazz manouche">Jazz Manouche</option>
+            <option value="orchestre symphonique">Orchestre Symphonique</option>
+            <option value="hip-hop boom bap">Hip-Hop Boom Bap</option>
+            <option value="rock alternatif">Rock Alternatif</option>
+            <option value="ambient / atmosphérique">Ambient / Atmosphérique</option>
+            <option value="folk acoustique">Folk Acoustique</option>
+            <option value="cinématique">Cinématique</option>
+            <option value="lo-fi chill">Lo-Fi Chill</option>
+            <option value="métal progressif">Métal Progressif</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Tempo (BPM approx)</label>
+          <select id="tempo-music">
+            <option value="lent (~60-80 BPM)">Lent (~60-80 BPM)</option>
+            <option value="modéré (~90-110 BPM)" selected>Modéré (~90-110 BPM)</option>
+            <option value="énergique (~120-140 BPM)">Énergique (~120-140 BPM)</option>
+            <option value="très rapide (~150+ BPM)">Très rapide (~150+ BPM)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Tonalité / Mode</label>
+          <select id="key-music">
+            <option value="majeur (lumineux)">Majeur (lumineux)</option>
+            <option value="mineur (sombre)">Mineur (sombre)</option>
+            <option value="dorien (mystérieux)">Dorien (mystérieux)</option>
+            <option value="phrygien (intense)">Phrygien (intense)</option>
+            <option value="pentatonique (zen)">Pentatonique (zen)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Durée souhaitée</label>
+          <select id="duration-music">
+            <option value="courte (~1-2 min)">Courte (~1-2 min)</option>
+            <option value="standard (~3-4 min)" selected>Standard (~3-4 min)</option>
+            <option value="longue (~5-7 min)">Longue (~5-7 min)</option>
+          </select>
+        </div>
+        <div class="field full">
+          <label>Instruments principaux</label>
+          <input type="text" id="instruments-music" placeholder="guitare acoustique, piano, violons, synthétiseur, batterie…">
+        </div>
+        <div class="field full">
+          <label>Univers visuel / Usage</label>
+          <textarea id="usage-music" placeholder="Une scène de film, une couverture de jeu vidéo, une playlist de méditation, une pub pour parfum…" style="min-height:60px"></textarea>
+        </div>
+        <div class="field">
+          <label>Influence artistique (optionnel)</label>
+          <input type="text" id="influence-music" placeholder="Hans Zimmer, Daft Punk, Miles Davis…">
+        </div>
+        <div class="field">
+          <label>Effets / Production</label>
+          <select id="effects-music">
+            <option value="propre et minimaliste">Propre et minimaliste</option>
+            <option value="reverb profonde et atmosphérique">Reverb profonde</option>
+            <option value="distordue et saturée">Distordue et saturée</option>
+            <option value="lo-fi avec grain de vinyl">Lo-fi avec grain</option>
+            <option value="production moderne et compressée">Production moderne</option>
+          </select>
+        </div>
+      </div>
+      <button class="generate-btn" onclick="generateMusic()">✦ Composer la description ✦</button>
+    </div>
+
+    <div class="loading" id="loading-music">
+      <div class="loading-notes">🎶</div>
+      <p>Arrangement en cours…</p>
+    </div>
+    <div class="error-msg" id="error-music"></div>
+    <div class="result" id="result-music">
+      <div class="result-header">
+        <div class="result-title" id="result-music-title">Description musicale</div>
+        <div class="result-badge" id="result-music-badge">Musique</div>
+      </div>
+      <div class="result-content" id="result-music-content"></div>
+      <div class="actions">
+        <button class="action-btn primary" onclick="copyResult('result-music-content')">Copier</button>
+        <button class="action-btn" onclick="generateMusic()">Régénérer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ONGLET HISTORIQUE -->
+  <div id="tab-history" style="display:none">
+    <div class="section-label">Historique</div>
+    <div id="history-container">
+      <div class="history-empty">Aucune création pour l'instant.<br>Commence à composer ✦</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const history = [];
+let currentTab = 'lyrics';
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    b.classList.toggle('active', ['lyrics','music','history'][i] === tab);
+  });
+  document.getElementById('tab-lyrics').style.display = tab === 'lyrics' ? '' : 'none';
+  document.getElementById('tab-music').style.display = tab === 'music' ? '' : 'none';
+  document.getElementById('tab-history').style.display = tab === 'history' ? '' : 'none';
+  if (tab === 'history') renderHistory();
+}
+
+async function callClaude(prompt) {
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1000,
+      messages: [{ role: "user", content: prompt }]
+    })
+  });
+  if (!response.ok) throw new Error(`Erreur API: ${response.status}`);
+  const data = await response.json();
+  return data.content.map(b => b.text || '').join('');
+}
+
+async function generateLyrics() {
+  const genre = document.getElementById('genre-lyrics').value;
+  const lang = document.getElementById('lang-lyrics').value;
+  const theme = document.getElementById('theme-lyrics').value || 'amour';
+  const mood = document.getElementById('mood-lyrics').value;
+  const context = document.getElementById('context-lyrics').value;
+  const structure = document.getElementById('structure-lyrics').value;
+  const artist = document.getElementById('artist-lyrics').value;
+
+  const prompt = `Tu es un parolier professionnel. Écris des paroles de chanson originales et créatives avec les caractéristiques suivantes :
+
+Genre : ${genre}
+Langue : ${lang}
+Thème / émotion centrale : ${theme}
+Ambiance : ${mood}
+Structure : ${structure}
+${context ? `Contexte/histoire : ${context}` : ''}
+${artist ? `Style inspiré de : ${artist}` : ''}
+
+Règles :
+- Respecte strictement la structure demandée avec des titres clairs (ex: [Couplet 1], [Refrain], [Pont])
+- Les paroles doivent être poétiques, évocatrices et cohérentes
+- Adapte le style et le vocabulaire au genre musical
+- La langue de sortie est ${lang}
+- Ne mets pas d'explication, seulem
